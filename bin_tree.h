@@ -19,7 +19,6 @@ class bin_tree{
     int key_size;
     int height;
     tree_item* root;
-    void remove_item(int, tree_item**);
     public:
     void add_item(int, unsigned int);
     int find_item(int);

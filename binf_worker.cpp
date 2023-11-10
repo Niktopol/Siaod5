@@ -39,21 +39,23 @@ void binf_worker::write_to_file(patient_info& info){
     if (file.is_open()){
         file.seekp(0, std::ios::end);
         file.write(reinterpret_cast<char*>(&info), sizeof(info));
+
         binary_tree->add_item(info.card_num, size);
+        
         ++size;
     }
 }
-void binf_worker::remove_from_file(unsigned int ind){
+void binf_worker::remove_from_file(int key){
     if(file.is_open()){
         file.seekg(0, std::ios::beg);
         std::ofstream ofs("temp.bin", std::ios::out | std::ios::binary); 
         patient_info info;
         for (int i = 0; i < size; i++){
-            if (i != ind){
-                file.read(reinterpret_cast<char*>(&info), sizeof(patient_info));
+            file.read(reinterpret_cast<char*>(&info), sizeof(patient_info));
+            if (info.card_num != key){
                 ofs.write(reinterpret_cast<char*>(&info), sizeof(patient_info));
             }else{
-                file.seekg(sizeof(patient_info), std::ios::cur);
+                binary_tree->remove_item(key);
             }
         }
         ofs.close(); 
@@ -64,9 +66,9 @@ void binf_worker::remove_from_file(unsigned int ind){
         --size;
     }
 }
-std::string binf_worker::find_in_file(unsigned int ind){
+std::string binf_worker::find_in_file(int ind){
     std::string record;
-    if(file.is_open() && ind <= (size-1)){
+    if(file.is_open() && ind < size && ind >= 0){
         patient_info info;
         file.seekg(ind*sizeof(info), std::ios::beg);
         file.read(reinterpret_cast<char*>(&info), sizeof(patient_info));
@@ -74,15 +76,13 @@ std::string binf_worker::find_in_file(unsigned int ind){
         record.append(info.illness);
         record.append(" ");
         record.append(info.doctor);
+    }else{
+        return "Record not found";
     }
     return record;
 }
 std::string binf_worker::find_by_bin_tree(int key){
-    int ind = binary_tree->find_item(key);
-    if (ind > 0){
-        return find_in_file(ind);
-    }
-    return "Key "+std::to_string(key)+" not found";
+    return find_in_file(binary_tree->find_item(key));
 }
 std::string binf_worker::find_by_b_tree(int key){
     return "";

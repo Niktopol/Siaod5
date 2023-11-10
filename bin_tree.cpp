@@ -9,12 +9,12 @@ void bin_tree::tree_item::decr_ind(unsigned int ind){
     if(right){
         right->decr_ind(ind);
     }
-};
+}
 bin_tree::tree_item::tree_item(patient* value){
     this->left = nullptr;
     this->right = nullptr;
     this->value = value;
-};
+}
 bin_tree::tree_item::~tree_item(){
     if (value){
         delete value;
@@ -30,7 +30,6 @@ void bin_tree::add_item(int key, unsigned int index){
     records += 1;
     tree_item** cur = &root;
     int level = 1;
-    key_size = (key_size > std::to_string(key).length())? key_size : std::to_string(key).length();
     while(*cur){
         level += 1;
         if((*cur)->value->card_num > key){
@@ -41,6 +40,7 @@ void bin_tree::add_item(int key, unsigned int index){
             return;
         }
     }
+    key_size = (key_size > std::to_string(key).length())? key_size : std::to_string(key).length();
     height = height < level ? level : height;
     *cur = new tree_item(new patient(key, index));
 }
@@ -56,8 +56,9 @@ int bin_tree::find_item(int key){
         }
     }
     return -1;
-};
-void bin_tree::remove_item(int key, tree_item** cur){
+}
+void bin_tree::remove_item(int key){
+    tree_item** cur = &root;
     while(*cur){
         if((*cur)->value->card_num > key){
             cur = &((*cur)->left);
@@ -65,14 +66,24 @@ void bin_tree::remove_item(int key, tree_item** cur){
             cur = &((*cur)->right);
         }else{
             records -= 1;
+            int ind = (*cur)->value->ind;
             if ((*cur)->left && (*cur)->right){
                 tree_item** replacement = &((*cur)->right);
                 while ((*replacement)->left){
                     replacement = &((*replacement)->left);
                 }
-                delete (*cur)->value;
-                (*cur)->value = new patient((*replacement)->value->card_num, (*replacement)->value->ind);
-                remove_item((*cur)->value->card_num, replacement);
+                (*cur)->value->card_num = (*replacement)->value->card_num;
+                (*cur)->value->ind = (*replacement)->value->ind;
+
+                if ((*replacement)->right){
+                    tree_item* temp = ((*replacement)->right);
+                    (*replacement)->right = nullptr;
+                    delete *replacement;
+                    *replacement = temp;
+                }else{
+                    delete *replacement;
+                    *replacement = nullptr;
+                }
             }else if ((*cur)->left){
                 tree_item* temp = ((*cur)->left);
                 (*cur)->left = nullptr;
@@ -87,25 +98,18 @@ void bin_tree::remove_item(int key, tree_item** cur){
                 delete *cur;
                 *cur = nullptr;
             }
+            root->decr_ind(ind);
             break;
         }
     }
-};
-void bin_tree::remove_item(int key){
-    if (root){
-        int ind = find_item(key);
-        if (ind >= 0){
-            remove_item(key, &root);
-            root->decr_ind(ind);
-        }
-    }
-};
+}
 void bin_tree::print_tree(){
     std::queue<tree_item*> queue;
     std::queue<tree_item*> print_queue;
     tree_item* temp;
     std::string gap = "";
     std::string e_gap = "";
+    int to_print = records;
     if(root){
         queue.push(root);
         for(int i = 0; i < key_size; i++){
@@ -117,12 +121,16 @@ void bin_tree::print_tree(){
                 print_queue.push(queue.front());
                 queue.pop();
                 if(print_queue.back()){
+                    to_print -= 1;
                     queue.push(print_queue.back()->left);
                     queue.push(print_queue.back()->right);
                 }else{
                     queue.push(nullptr);
                     queue.push(nullptr);
                 }
+            }
+            if (to_print == 0 && i < (height-1)){
+                height -= 1;
             }
         }
         for(int level = 1; level <= height; level++){
@@ -148,13 +156,12 @@ void bin_tree::print_tree(){
             std::cout << std::endl;
         }
     }
-};
-
+}
 bin_tree::bin_tree(){
     root = nullptr;
     records = 0;
     key_size = 0;
-};
+}
 bin_tree::~bin_tree(){
     if (root){
         delete root;
