@@ -1,22 +1,27 @@
 #include <iostream>
 #include "binf_worker.h"
 #include "b_tree.h"
+#include <string>
 
 int main(){
     srand(time(nullptr));
 
     b_tree tree(2);
+    
     for (int i = 0; i < 20; i++){
         int rnd = rand()%1000;
-        //std::cout << rnd << std::endl;
-        tree.add_item(i, i);
+        std::cout << rnd << std::endl;
+        tree.add_item(rnd, i);
         tree.print_tree();
-        std::cout << std::endl;
+        std::cout << std::endl << "----------" << std::endl;
     }
-    //tree.print_tree();
-    int key = 0;
-    std::cin  >> key;
-    std::cout << tree.find_item(key) << std::endl;
+    //└├┌
+    //std::string s = "└├┌";
+    //std::cout << s;
+    tree.print_tree();
+    //int key = 0;
+    //std::cin  >> key;
+    //std::cout << tree.find_item(key) << std::endl;
     return 0;
 }
 /*
