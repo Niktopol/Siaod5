@@ -15,7 +15,7 @@ class b_tree{
         bool add_val(int, unsigned int);
         void add_children(tree_item*, tree_item*, tree_item*);
         int find_item(int);
-        void print_self(std::string,std::string, bool, bool, bool);
+        void print_self(std::string,std::string, bool, bool);
         tree_item(int);
         ~tree_item();
     };

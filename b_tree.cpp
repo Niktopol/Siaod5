@@ -61,22 +61,22 @@ int b_tree::tree_item::find_item(int key){
         }
 	}
 }
-void b_tree::tree_item::print_self(std::string gap_before, std::string self_gap, bool l_edge, bool r_edge, bool is_starter){
-    int t = gap_before.length();
+void b_tree::tree_item::print_self(std::string gap_before, std::string self_gap, bool left, bool right){
     for (int i = val_count-1; i >= 0; i--){
         if(children[i+1]){
-            if(i == (val_count-1)){
-                children[i+1]->print_self(gap_before+self_gap, self_gap, false, r_edge || is_starter, false);
+            if (i == val_count-1){
+                children[i+1]->print_self(gap_before+self_gap, self_gap, false, true);
             }else{
-                children[i+1]->print_self(gap_before+self_gap, self_gap, false, false, false);
+                children[i+1]->print_self(gap_before+self_gap, self_gap, false, false);
             }
         }
-        if((i == 0)){
-            std::cout << gap_before.substr(0, gap_before.length()-1)+"└";
-        }else if((i == (val_count-1))){
-            std::cout << gap_before.substr(0, gap_before.length()-1)+"┌";
-        }else if (!is_starter){
-            std::cout << gap_before.substr(0, gap_before.length()-1)+"├";
+        //└├┌
+        if ((i == 0) && left){
+            std::cout << gap_before.substr(0, gap_before.length()-1) + "└";
+        }else if ((i == val_count-1) && right){
+            std::cout << gap_before.substr(0, gap_before.length()-1) + "┌";
+        }else if (gap_before.length() > 0){
+            std::cout << gap_before.substr(0, gap_before.length()-1) + "├";
         }
         for (int j = 0; j < self_gap.length() - std::to_string(values[i]->card_num).length(); j++){
             std::cout << " ";
@@ -84,7 +84,7 @@ void b_tree::tree_item::print_self(std::string gap_before, std::string self_gap,
         std::cout << values[i]->card_num << std::endl;
     }
     if(children[0]){
-        children[0]->print_self(gap_before+self_gap, self_gap, l_edge || is_starter, false, false);
+        children[0]->print_self(gap_before+self_gap, self_gap, true, false);
     }
 }
 b_tree::tree_item::tree_item(int param){
@@ -232,7 +232,7 @@ void b_tree::print_tree(){
         }
     }
     */
-    root->print_self("", gap, false, false, true);
+    root->print_self("", gap, false, false);
 }
 b_tree::b_tree(int param){
     if (param > 1){
