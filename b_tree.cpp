@@ -33,6 +33,21 @@ void b_tree::tree_item::add_children(tree_item* to_replace, tree_item* left, tre
         }
     }
 }
+void b_tree::tree_item::remove_val(unsigned int ind){
+    delete values[ind];
+    for(int i = ind; i < val_count-1; i++){
+        values[i] = values[i+1];
+    }
+    values[val_count-1] = nullptr;
+    val_count -= 1;
+}
+void b_tree::tree_item::remove_child(unsigned int ind){
+    delete children[ind];
+    for(int i = ind; i < (param*2-1); i++){
+        children[i] = children[i+1];
+    }
+    children[param*2-1] = nullptr;
+}
 int b_tree::tree_item::find_item(int key){
     int left = 0;
     int right = val_count-1;
@@ -61,22 +76,121 @@ int b_tree::tree_item::find_item(int key){
         }
 	}
 }
+void b_tree::tree_item::remove_and_unite(int key, unsigned int found_ind){
+    int left = 0;
+    int right = val_count-1;
+    int mid = 0;
+    while (true){
+        mid = (left + right) / 2;
+        if (key < values[mid]->card_num){
+            right = mid - 1;
+        }
+        else if (key > values[mid]->card_num){
+            left = mid + 1;
+        }
+        if (left > right){
+            int found_pos = mid;
+            if (key > values[mid]->card_num){
+                found_pos += 1;
+            }
+            if((found_pos > 0) && (children[found_pos-1]->val_count > (param-1))){
+                children[found_pos]->add_val(values[found_pos-1]->card_num, values[found_pos-1]->ind);
+                values[found_pos-1]->card_num = children[found_pos-1]->values[children[found_pos-1]->val_count-1]->card_num;
+                values[found_pos-1]->ind = children[found_pos-1]->values[children[found_pos-1]->val_count-1]->ind;
+                children[found_pos-1]->remove_val(children[found_pos-1]->val_count-1);
+            }else if(children[found_pos+1]->val_count > (param-1)){
+                children[found_pos]->add_val(values[found_pos]->card_num, values[found_pos]->ind);
+                values[found_pos]->card_num = children[found_pos+1]->values[0]->card_num;
+                values[found_pos]->ind = children[found_pos+1]->values[0]->ind;
+                children[found_pos+1]->remove_val(0);
+            }else{
+                if(found_pos > 0){
+                    for(int i = 0; i < children[found_pos]->val_count; i++){
+                        children[found_pos-1]->add_val(children[found_pos]->values[i]->card_num, children[found_pos]->values[i]->ind);
+                    }
+                    children[found_pos-1]->add_val(values[found_pos-1]->card_num, values[found_pos-1]->ind);
+                }else{
+                    for(int i = 0; i < children[found_pos]->val_count; i++){
+                        children[found_pos+1]->add_val(children[found_pos]->values[i]->card_num, children[found_pos]->values[i]->ind);
+                    }
+                    children[found_pos+1]->add_val(values[found_pos]->card_num, values[found_pos]->ind);
+                }
+                remove_child(found_pos);
+                remove_val(mid);
+            }
+            return;
+        }
+    }
+}
+void b_tree::tree_item::remove_item(int key, tree_item* parent){
+    int left = 0;
+    int right = val_count-1;
+    int mid = 0;
+	while (true){
+		mid = (left + right) / 2;
+		if (key < values[mid]->card_num){
+            right = mid - 1;
+        }
+		else if (key > values[mid]->card_num){
+            left = mid + 1;
+        }
+		else{
+            if(!has_children){
+                if((val_count > param-1) || !parent){
+                    remove_val(mid);
+                }else{
+                    remove_val(mid);
+                    parent->remove_and_unite(key, mid);
+                }
+            }else{
+                if(children[mid]->val_count > (param-1)){
+                    values[mid]->card_num = children[mid]->values[children[mid]->val_count-1]->card_num;
+                    values[mid]->ind = children[mid]->values[children[mid]->val_count-1]->ind;
+                    children[mid]->remove_item(children[mid]->values[children[mid]->val_count-1]->card_num, this);
+                }else if(children[mid+1]->val_count > (param-1)){
+                    values[mid]->card_num = children[mid+1]->values[0]->card_num;
+                    values[mid]->ind = children[mid+1]->values[0]->ind;
+                    children[mid+1]->remove_item(children[mid+1]->values[0]->card_num, this);
+                }else{
+                    //join
+                }
+            }
+            return;
+        }
+		if (left > right){
+            if(has_children){
+                if (key < values[mid]->card_num){
+                    children[mid]->remove_item(key, this);
+                    return;
+                }else{
+                    children[mid+1]->remove_item(key, this);
+                    return;
+                }
+            }else{
+                return;
+            }
+        }
+	}
+}
 void b_tree::tree_item::print_self(std::string gap_before, std::string self_gap, bool left, bool right){
     for (int i = val_count-1; i >= 0; i--){
         if(children[i+1]){
             if (i == val_count-1){
-                children[i+1]->print_self(gap_before+self_gap, self_gap, false, true);
+                if((gap_before.length() > 0) && right){
+                    children[i+1]->print_self(gap_before.substr(0, gap_before.length()-1)+" "+self_gap.substr(0, self_gap.length()-1) + "|", self_gap, false, true);
+                }else{
+                    children[i+1]->print_self(gap_before+self_gap.substr(0, self_gap.length()-1) + "|", self_gap, false, true);
+                }
             }else{
-                children[i+1]->print_self(gap_before+self_gap, self_gap, false, false);
+                children[i+1]->print_self(gap_before+self_gap.substr(0, self_gap.length()-1) + "|", self_gap, false, false);
             }
         }
-        //└├┌
         if ((i == 0) && left){
-            std::cout << gap_before.substr(0, gap_before.length()-1) + "└";
+            std::cout << gap_before.substr(0, gap_before.length()-1) + "\\";
         }else if ((i == val_count-1) && right){
-            std::cout << gap_before.substr(0, gap_before.length()-1) + "┌";
+            std::cout << gap_before.substr(0, gap_before.length()-1) + "/";
         }else if (gap_before.length() > 0){
-            std::cout << gap_before.substr(0, gap_before.length()-1) + "├";
+            std::cout << gap_before.substr(0, gap_before.length()-1) + ">";
         }
         for (int j = 0; j < self_gap.length() - std::to_string(values[i]->card_num).length(); j++){
             std::cout << " ";
@@ -84,7 +198,11 @@ void b_tree::tree_item::print_self(std::string gap_before, std::string self_gap,
         std::cout << values[i]->card_num << std::endl;
     }
     if(children[0]){
-        children[0]->print_self(gap_before+self_gap, self_gap, true, false);
+        if((gap_before.length() > 0) && left){
+            children[0]->print_self(gap_before.substr(0, gap_before.length()-1)+" "+self_gap.substr(0, self_gap.length()-1) + "|", self_gap, true, false);
+        }else{
+            children[0]->print_self(gap_before+self_gap.substr(0, self_gap.length()-1) + "|", self_gap, true, false);
+        }
     }
 }
 b_tree::tree_item::tree_item(int param){
@@ -162,8 +280,7 @@ void b_tree::add_item(int key, unsigned int index){
                 parent->add_val(cur->values[param-1]->card_num, cur->values[param-1]->ind);
             }else{
                 tree_item* new_root = new tree_item(param);
-                new_root->val_count = 1;
-                new_root->values[0] = cur->values[param-1];
+                new_root->add_val(cur->values[param-1]->card_num, cur->values[param-1]->ind);
                 new_root->has_children = true;
                 new_root->children[0] = left;
                 new_root->children[1] = right;
@@ -171,11 +288,9 @@ void b_tree::add_item(int key, unsigned int index){
                 level += 1;
             }
             if (key <= cur->values[param-1]->card_num){
-                cur->values[param-1] = nullptr;
                 delete cur;
                 cur = left;
             }else{
-                cur->values[param-1] = nullptr;
                 delete cur;
                 cur = right;
             }
@@ -191,10 +306,12 @@ void b_tree::add_item(int key, unsigned int index){
         int i = 0;
         for(; (key > cur->values[i]->card_num) && ((i+1) < cur->val_count); i++);
         level += 1;
-        if(key <= cur->values[i]->card_num){
+        if(key < cur->values[i]->card_num){
             cur = cur->children[i];
-        }else{
+        }else if(key > cur->values[i]->card_num){
             cur = cur->children[i+1];
+        }else{
+            return;
         }
     }
     height = height < level ? level : height;
@@ -206,32 +323,15 @@ int b_tree::find_item(int key){
     return -1;
 }
 void b_tree::remove_item(int key){
+    if(root){
+        root->remove_item(key, nullptr);
+    }
 }
-//" " + " " * ((recs + (recs -1)) * 2^ height - lvl - 1)
 void b_tree::print_tree(){
-    int record_count = 0;
-    int level = 1;
     std::string gap = "";
     for(int i = 0; i < key_size; i++){
         gap += " ";
     }
-    /*
-    std::queue<tree_item*> queue;
-    queue.push(root);
-    while (!queue.empty()){
-        tree_item* cur = queue.front();
-        queue.pop();
-        for(int i = 0; i < cur->val_count; i++){
-            std::cout << cur->values[i]->card_num << " ";
-        }
-        std::cout << std::endl;
-        for(int i = 0; i < (param*2); i++){
-            if(cur->children[i]){
-                queue.push(cur->children[i]);
-            }
-        }
-    }
-    */
     root->print_self("", gap, false, false);
 }
 b_tree::b_tree(int param){

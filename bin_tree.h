@@ -1,8 +1,6 @@
 #ifndef BIN_TREE
 #define BIN_TREE
-#include <cmath>
 #include <iostream>
-#include <queue>
 #include <string>
 #include "structures.h"
 
@@ -11,6 +9,7 @@ class bin_tree{
         tree_item* left;
         tree_item* right;
         patient* value;
+        void print_self(std::string,std::string, bool, bool);
         void decr_ind(unsigned int);
         tree_item(patient*);
         ~tree_item();

@@ -1,4 +1,29 @@
 #include "bin_tree.h"
+void bin_tree::tree_item::print_self(std::string gap_before, std::string self_gap, bool left, bool right){
+    if(this->right){
+        if ((gap_before.length() > 0) && right){
+            this->right->print_self(gap_before.substr(0, gap_before.length()-1)+" "+self_gap.substr(0, self_gap.length()-1) + "|", self_gap, false, true);
+        }else{
+            this->right->print_self(gap_before+self_gap.substr(0, self_gap.length()-1) + "|", self_gap, false, true);
+        }
+    }
+    if(right){
+        std::cout << gap_before.substr(0, gap_before.length()-1) + "/";
+    }else if(left){
+        std::cout << gap_before.substr(0, gap_before.length()-1) + "\\";
+    }
+    for (int j = 0; j < self_gap.length() - std::to_string(value->card_num).length(); j++){
+        std::cout << " ";
+    }
+    std::cout << value->card_num << std::endl;
+    if(this->left){
+        if((gap_before.length() > 0) && left){
+            this->left->print_self(gap_before.substr(0, gap_before.length()-1)+" "+self_gap.substr(0, self_gap.length()-1) + "|", self_gap, true, false);
+        }else{
+            this->left->print_self(gap_before+self_gap.substr(0, self_gap.length()-1) + "|", self_gap, true, false);
+        }
+    }
+}
 void bin_tree::tree_item::decr_ind(unsigned int ind){
     if (value->ind > ind){
         value->ind -= 1;
@@ -104,6 +129,14 @@ void bin_tree::remove_item(int key){
     }
 }
 void bin_tree::print_tree(){
+    std::string gap = "";
+    for(int i = 0; i < key_size; i++){
+        gap += " ";
+    }
+    if (root){
+        root->print_self("", gap, false, false);
+    }
+    /*
     std::queue<tree_item*> queue;
     std::queue<tree_item*> print_queue;
     tree_item* temp;
@@ -155,10 +188,11 @@ void bin_tree::print_tree(){
             }
             std::cout << std::endl;
         }
-    }
+    }*/
 }
 bin_tree::bin_tree(){
     root = nullptr;
+    height = 0;
     records = 0;
     key_size = 0;
 }
