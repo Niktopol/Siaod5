@@ -2,6 +2,7 @@
 #define B_TREE
 #include "structures.h"
 #include <iostream>
+#include <vector>
 
 class b_tree{
     struct tree_item{
@@ -15,8 +16,6 @@ class b_tree{
         void remove_val(unsigned int);
         void remove_child(unsigned int);
         int find_item(int);
-        //void remove_and_unite(int, unsigned int);
-        //void remove_item(int, tree_item*);
         void print_self(std::string,std::string, bool, bool);
         tree_item(int);
         ~tree_item();
