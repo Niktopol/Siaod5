@@ -42,7 +42,9 @@ void b_tree::tree_item::remove_val(unsigned int ind){
     val_count -= 1;
 }
 void b_tree::tree_item::remove_child(unsigned int ind){
-    delete children[ind];
+    if (children[ind]){
+        delete children[ind];
+    }
     for(int i = ind; i < (param*2-1); i++){
         children[i] = children[i+1];
     }
@@ -220,14 +222,10 @@ b_tree::tree_item::tree_item(int param){
 }
 b_tree::tree_item::~tree_item(){
     for(int i = 0; i < (param*2-1); i++){
-        if (values[i]){
-            delete values[i];
-        }
+        delete values[i];
     }
     for(int i = 0; i < (param*2); i++){
-        if (children[i]){
-            delete children[i];
-        }
+        delete children[i];
     }
     delete [] values;
     delete [] children;
@@ -327,6 +325,7 @@ void b_tree::remove_item(int key){
         tree_item* parent = nullptr;
         tree_item* cur = root;
         while(cur->has_children){
+            //print_tree();
             int left = 0;
             int right = cur->val_count-1;
             int mid = 0;
@@ -339,22 +338,139 @@ void b_tree::remove_item(int key){
                     left = mid + 1;
                 }
                 else{
-                    return;
+                    if(mid > 0 && cur->children[mid]->val_count >= param){
+                        tree_item* temp_cur = cur->children[mid];
+                        while (temp_cur->has_children){
+                            temp_cur = temp_cur->children[temp_cur->val_count];
+                        }
+                        cur->values[mid]->card_num = temp_cur->values[temp_cur->val_count-1]->card_num;
+                        cur->values[mid]->ind = temp_cur->values[temp_cur->val_count-1]->ind;
+                        key = temp_cur->values[temp_cur->val_count-1]->card_num;
+                        parent = cur;
+                        cur = cur->children[mid];
+                    }else if(cur->children[mid+1] && cur->children[mid+1]->val_count >= param){
+                        tree_item* temp_cur = cur->children[mid+1];
+                        while (temp_cur->has_children){
+                            temp_cur = temp_cur->children[0];
+                        }
+                        cur->values[mid]->card_num = temp_cur->values[0]->card_num;
+                        cur->values[mid]->ind = temp_cur->values[0]->ind;
+                        key = temp_cur->values[0]->card_num;
+                        parent = cur;
+                        cur = cur->children[mid+1];
+                    }else{
+                        tree_item* left_neighbour = cur->children[mid];
+                        tree_item* right_neighbour = cur->children[mid+1];
+                        left_neighbour->add_val(cur->values[mid]->card_num, cur->values[mid]->ind);
+                        for(int i = 0; i < right_neighbour->val_count; i++){
+                            left_neighbour->children[left_neighbour->val_count] = right_neighbour->children[i];
+                            right_neighbour->children[i] = nullptr;
+                            left_neighbour->add_val(right_neighbour->values[i]->card_num, right_neighbour->values[i]->ind);
+                        }
+                        left_neighbour->children[left_neighbour->val_count] = right_neighbour->children[right_neighbour->val_count];
+                        right_neighbour->children[right_neighbour->val_count] = nullptr;
+                        cur->remove_child(mid+1);
+                        cur->remove_val(mid);
+                        parent = cur;
+                        if((cur == root) && (cur->val_count == 0)){
+                            root = cur->children[0];
+                            cur->children[0] = nullptr;
+                            delete cur;
+                            parent = nullptr;
+                        }
+                        cur = left_neighbour;
+                    }
+                    break;
                 }
                 if (left > right){
+                    int found_ind = mid;
                     if (key < cur->values[mid]->card_num){
                         parent = cur;
                         cur = cur->children[mid];
                     }else{
                         parent = cur;
                         cur = cur->children[mid+1];
+                        found_ind += 1;
                     }
                     if(cur->val_count == (param-1)){
-                        if((mid > 0) && parent->children[]){
+                        if((found_ind > 0) && (parent->children[found_ind-1]->val_count >= param)){
+                            tree_item* left_neighbour = parent->children[found_ind-1];
+                            cur->add_val(parent->values[found_ind-1]->card_num, parent->values[found_ind-1]->ind);
+                            parent->values[found_ind-1]->card_num = left_neighbour->values[left_neighbour->val_count-1]->card_num;
+                            parent->values[found_ind-1]->ind = left_neighbour->values[left_neighbour->val_count-1]->ind;
+                            for(int i = cur->val_count; i > 0; i--){
+                                cur->children[i] = cur->children[i-1];
+                            }
+                            cur->children[0] = left_neighbour->children[left_neighbour->val_count];
 
+                            left_neighbour->children[left_neighbour->val_count] = nullptr;
+                            left_neighbour->remove_val(left_neighbour->val_count-1);
+                        }else if(((found_ind+1) < param*2) && parent->children[found_ind+1] && parent->children[found_ind+1]->val_count >= param){
+                            tree_item* right_neighbour = parent->children[found_ind+1];
+                            cur->add_val(parent->values[found_ind]->card_num, parent->values[found_ind]->ind);
+                            parent->values[found_ind]->card_num = right_neighbour->values[0]->card_num;
+                            parent->values[found_ind]->ind = right_neighbour->values[0]->ind;
+                            cur->children[cur->val_count] = right_neighbour->children[0];
+
+                            right_neighbour->children[0] = nullptr;
+                            right_neighbour->remove_child(0);
+                            right_neighbour->remove_val(0);
+                        }else{
+                            if(found_ind > 0){
+                                tree_item* left_neighbour = parent->children[found_ind-1];
+                                left_neighbour->add_val(parent->values[found_ind-1]->card_num, parent->values[found_ind-1]->ind);
+                                for(int i = 0; i < cur->val_count; i++){
+                                    left_neighbour->children[left_neighbour->val_count] = cur->children[i];
+                                    cur->children[i] = nullptr;
+                                    left_neighbour->add_val(cur->values[i]->card_num, cur->values[i]->ind);
+                                }
+                                left_neighbour->children[left_neighbour->val_count] = cur->children[cur->val_count];
+                                cur->children[cur->val_count] = nullptr;
+                                parent->remove_child(found_ind);
+                                cur = left_neighbour;
+                                parent->remove_val(found_ind-1);
+                            }else{
+                                tree_item* right_neighbour = parent->children[found_ind+1];
+                                cur->add_val(parent->values[found_ind]->card_num, parent->values[found_ind]->ind);
+                                for(int i = 0; i < right_neighbour->val_count; i++){
+                                    cur->children[cur->val_count] = right_neighbour->children[i];
+                                    right_neighbour->children[i] = nullptr;
+                                    cur->add_val(right_neighbour->values[i]->card_num, right_neighbour->values[i]->ind);
+                                }
+                                cur->children[cur->val_count] = right_neighbour->children[right_neighbour->val_count];
+                                right_neighbour->children[right_neighbour->val_count] = nullptr;
+                                parent->remove_child(found_ind+1);
+                                parent->remove_val(found_ind);
+                            }
+                            if((parent == root) && (parent->val_count == 0)){
+                                root = parent->children[0];
+                                parent->children[0] = nullptr;
+                                delete parent;
+                                parent = nullptr;
+                            }
                         }
                     }
+                    break;
                 }
+            }
+        }
+        int l_left = 0;
+        int l_right = cur->val_count-1;
+        int l_mid = 0;
+        while (true){
+            l_mid = (l_left + l_right) / 2;
+            if (key < cur->values[l_mid]->card_num){
+                l_right = l_mid - 1;
+            }
+            else if (key > cur->values[l_mid]->card_num){
+                l_left = l_mid + 1;
+            }
+            else{
+                cur->remove_val(l_mid);
+                return;
+            }
+            if (l_left > l_right){
+                return;
             }
         }
     }
