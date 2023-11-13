@@ -8,9 +8,9 @@ void bin_tree::tree_item::print_self(std::string gap_before, std::string self_ga
         }
     }
     if(right){
-        std::cout << gap_before.substr(0, gap_before.length()-1) + "/";
+        std::cout << gap_before.substr(0, gap_before.length()-1) + "┌";
     }else if(left){
-        std::cout << gap_before.substr(0, gap_before.length()-1) + "\\";
+        std::cout << gap_before.substr(0, gap_before.length()-1) + "└";
     }
     for (int j = 0; j < self_gap.length() - std::to_string(value->card_num).length(); j++){
         std::cout << " ";

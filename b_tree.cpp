@@ -75,7 +75,7 @@ int b_tree::tree_item::find_item(int key){
             }
         }
 	}
-}
+}/*
 void b_tree::tree_item::remove_and_unite(int key, unsigned int found_ind){
     int left = 0;
     int right = val_count-1;
@@ -171,7 +171,7 @@ void b_tree::tree_item::remove_item(int key, tree_item* parent){
             }
         }
 	}
-}
+}*/
 void b_tree::tree_item::print_self(std::string gap_before, std::string self_gap, bool left, bool right){
     for (int i = val_count-1; i >= 0; i--){
         if(children[i+1]){
@@ -186,11 +186,11 @@ void b_tree::tree_item::print_self(std::string gap_before, std::string self_gap,
             }
         }
         if ((i == 0) && left){
-            std::cout << gap_before.substr(0, gap_before.length()-1) + "\\";
+            std::cout << gap_before.substr(0, gap_before.length()-1) + "└";
         }else if ((i == val_count-1) && right){
-            std::cout << gap_before.substr(0, gap_before.length()-1) + "/";
+            std::cout << gap_before.substr(0, gap_before.length()-1) + "┌";
         }else if (gap_before.length() > 0){
-            std::cout << gap_before.substr(0, gap_before.length()-1) + ">";
+            std::cout << gap_before.substr(0, gap_before.length()-1) + "├";
         }
         for (int j = 0; j < self_gap.length() - std::to_string(values[i]->card_num).length(); j++){
             std::cout << " ";
@@ -324,7 +324,39 @@ int b_tree::find_item(int key){
 }
 void b_tree::remove_item(int key){
     if(root){
-        root->remove_item(key, nullptr);
+        tree_item* parent = nullptr;
+        tree_item* cur = root;
+        while(cur->has_children){
+            int left = 0;
+            int right = cur->val_count-1;
+            int mid = 0;
+            while (true){
+                mid = (left + right) / 2;
+                if (key < cur->values[mid]->card_num){
+                    right = mid - 1;
+                }
+                else if (key > cur->values[mid]->card_num){
+                    left = mid + 1;
+                }
+                else{
+                    return;
+                }
+                if (left > right){
+                    if (key < cur->values[mid]->card_num){
+                        parent = cur;
+                        cur = cur->children[mid];
+                    }else{
+                        parent = cur;
+                        cur = cur->children[mid+1];
+                    }
+                    if(cur->val_count == (param-1)){
+                        if((mid > 0) && parent->children[]){
+
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 void b_tree::print_tree(){
