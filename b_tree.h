@@ -21,13 +21,14 @@ class b_tree{
         ~tree_item();
     };
     tree_item* root;
-    int records;
+        int records;
     int key_size;
     int height;
     int param;
     tree_item* get_left_part(tree_item*);
     tree_item* get_right_part(tree_item*);
     public:
+    unsigned int transform_count;
     void add_item(int, unsigned int);
     int find_item(int);
     void remove_item(int);

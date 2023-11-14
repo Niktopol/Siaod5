@@ -11,6 +11,11 @@ void hash_table::re_hash(){
     table = newTable;
 }
 void hash_table::push_key(int key, unsigned int ind){
+    for (patient& i : table[key % size]){
+        if (i.card_num == key){
+            return;
+        }
+    }
     table[key % size].push_front(patient(key, ind));
     ++records;
     while ((records / size) >= 0.75){

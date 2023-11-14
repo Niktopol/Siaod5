@@ -1,5 +1,6 @@
 #include "b_tree.h"
 
+//Метод для уменьшения сдвига при удалениии элемента
 void b_tree::tree_item::decrease_ind(unsigned int key){
     for(int i = 0; i < val_count; i++){
         if (values[i]->ind > key){
@@ -12,6 +13,7 @@ void b_tree::tree_item::decrease_ind(unsigned int key){
         }
     }
 }
+//Метод добавления значения в массив узла с сохранением сортировки
 bool b_tree::tree_item::add_val(int key, unsigned int index){
     int temp_key = 0;
     int temp_ind = 0;
@@ -32,6 +34,7 @@ bool b_tree::tree_item::add_val(int key, unsigned int index){
     val_count += 1;
     return true;
 }
+//Метод добавления ребёнка для узла
 void b_tree::tree_item::add_children(tree_item* to_replace, tree_item* left, tree_item* right){
     for(int i = 0; i < (param*2); i++){
         if (children[i] == to_replace){
@@ -45,6 +48,7 @@ void b_tree::tree_item::add_children(tree_item* to_replace, tree_item* left, tre
         }
     }
 }
+//Метод удаления значения из узла со сдивгом остальных влево
 void b_tree::tree_item::remove_val(unsigned int ind){
     delete values[ind];
     for(int i = ind; i < val_count-1; i++){
@@ -53,6 +57,7 @@ void b_tree::tree_item::remove_val(unsigned int ind){
     values[val_count-1] = nullptr;
     val_count -= 1;
 }
+//Метод удаления ребёнка из узла со сдивгом остальных влево
 void b_tree::tree_item::remove_child(unsigned int ind){
     if (children[ind]){
         delete children[ind];
@@ -62,6 +67,7 @@ void b_tree::tree_item::remove_child(unsigned int ind){
     }
     children[param*2-1] = nullptr;
 }
+//Метод поиска в дереве
 int b_tree::tree_item::find_item(int key){
     int left = 0;
     int right = val_count-1;
@@ -90,6 +96,7 @@ int b_tree::tree_item::find_item(int key){
         }
 	}
 }
+//Метод рекурсивной распечатки дерева
 void b_tree::tree_item::print_self(std::string gap_before, std::string self_gap, bool left, bool right){
     for (int i = val_count-1; i >= 0; i--){
         if(children[i+1]){
@@ -123,6 +130,7 @@ void b_tree::tree_item::print_self(std::string gap_before, std::string self_gap,
         }
     }
 }
+//Конструктор узла
 b_tree::tree_item::tree_item(int param){
     val_count = 0;
     has_children = false;
@@ -136,6 +144,7 @@ b_tree::tree_item::tree_item(int param){
     }
     this->param = param;
 }
+//Деструктор узла
 b_tree::tree_item::~tree_item(){
     for(int i = 0; i < (param*2-1); i++){
         delete values[i];
@@ -146,6 +155,7 @@ b_tree::tree_item::~tree_item(){
     delete [] values;
     delete [] children;
 }
+//Метод для разбиения узла и получения левой половины
 b_tree::tree_item* b_tree::get_left_part(tree_item* node){
     tree_item* left_part = new tree_item(param);
     left_part->val_count = param-1;
@@ -162,6 +172,7 @@ b_tree::tree_item* b_tree::get_left_part(tree_item* node){
     }
     return left_part;
 }
+//Метод для разбиения узла и получения правой половины
 b_tree::tree_item* b_tree::get_right_part(tree_item* node){
     tree_item* right_part = new tree_item(param);
     right_part->val_count = param-1;
@@ -178,17 +189,22 @@ b_tree::tree_item* b_tree::get_right_part(tree_item* node){
     }
     return right_part;
 }
+//Метод добавления узла
 void b_tree::add_item(int key, unsigned int index){
     int level = 1;
     if(!root){
         root = new tree_item(param);
+        records = 1;
     }
     tree_item* parent = nullptr;
     tree_item* cur = root;
     while (true){
+        //Если текущий узел полон - разбиваем его на два и передаём центральное узначение узлу выше
         if (cur->val_count == (param*2-1)){
+            transform_count += 1;
             tree_item* left = get_left_part(cur);
             tree_item* right = get_right_part(cur);
+            records += 1;
             if (parent){
                 parent->add_children(cur, left, right);
                 parent->add_val(cur->values[param-1]->card_num, cur->values[param-1]->ind);
@@ -199,6 +215,7 @@ void b_tree::add_item(int key, unsigned int index){
                 new_root->children[0] = left;
                 new_root->children[1] = right;
                 root = new_root;
+                records += 1;
                 level += 1;
             }
             if (key <= cur->values[param-1]->card_num){
@@ -209,13 +226,15 @@ void b_tree::add_item(int key, unsigned int index){
                 cur = right;
             }
         }
+        //Когда дошли до листа - можно добавлять
         if (!cur->has_children){
             if (cur->add_val(key, index)){
                 key_size = (key_size > std::to_string(key).length())? key_size : std::to_string(key).length();
-                records += 1;
+                //records += 1;
             }
             break;
         }
+        //Иначе продолжаем поиск нужного листа
         parent = cur;
         int i = 0;
         for(; (key > cur->values[i]->card_num) && ((i+1) < cur->val_count); i++);
@@ -230,17 +249,20 @@ void b_tree::add_item(int key, unsigned int index){
     }
     height = height < level ? level : height;
 }
+//Метод запуска поиска в дереве
 int b_tree::find_item(int key){
     if (root){
         return root->find_item(key);
     }
     return -1;
 }
+//Метод удаления значения из дерева
 void b_tree::remove_item(int key){
     if(root){
         int ind = -1;
         tree_item* parent = nullptr;
         tree_item* cur = root;
+        //Т.к. удалить можно только из листа - спускаемся в лист
         while(cur->has_children){
             int left = 0;
             int right = cur->val_count-1;
@@ -254,7 +276,11 @@ void b_tree::remove_item(int key){
                     left = mid + 1;
                 }
                 else{
+                    //Если удаляемое значение не в листе
                     ind = (ind > 0) ? ind: cur->values[mid]->ind;
+                    //И в левом ребёнке нужного значения достаточно значений
+                    //Меняем удаляемый элемент на наибольший в поддереве с корнем - левым ребёнком
+                    //И удаляем этот наибольший в левом поддереве
                     if(cur->children[mid]->val_count >= param){
                         tree_item* temp_cur = cur->children[mid];
                         while (temp_cur->has_children){
@@ -265,6 +291,9 @@ void b_tree::remove_item(int key){
                         key = temp_cur->values[temp_cur->val_count-1]->card_num;
                         parent = cur;
                         cur = cur->children[mid];
+                    //Если в правом ребёнке нужного значения достаточно значений
+                    //Меняем удаляемый элемент на наименьший в поддереве с корнем - правым ребёнком
+                    //И удаляем этот наименьший в правом поддереве
                     }else if(cur->children[mid+1]->val_count >= param){
                         tree_item* temp_cur = cur->children[mid+1];
                         while (temp_cur->has_children){
@@ -276,6 +305,9 @@ void b_tree::remove_item(int key){
                         parent = cur;
                         cur = cur->children[mid+1];
                     }else{
+                        //Иначе объединяем левого и правого ребёнка, 
+                        //переносим удаляемый элемент в узел - результат объединения
+                        //и запускаем удаление из этого узла
                         tree_item* left_neighbour = cur->children[mid];
                         tree_item* right_neighbour = cur->children[mid+1];
                         left_neighbour->add_val(cur->values[mid]->card_num, cur->values[mid]->ind);
@@ -309,7 +341,9 @@ void b_tree::remove_item(int key){
                         cur = cur->children[mid+1];
                         found_ind += 1;
                     }
+                    //Если в текущем узле недостаточно элементов - нужно дополнить
                     if(cur->val_count == (param-1)){
+                        //При возможности взять элемент из левого брата
                         if((found_ind > 0) && (parent->children[found_ind-1]->val_count >= param)){
                             tree_item* left_neighbour = parent->children[found_ind-1];
                             cur->add_val(parent->values[found_ind-1]->card_num, parent->values[found_ind-1]->ind);
@@ -322,6 +356,7 @@ void b_tree::remove_item(int key){
 
                             left_neighbour->children[left_neighbour->val_count] = nullptr;
                             left_neighbour->remove_val(left_neighbour->val_count-1);
+                        //Или из правого
                         }else if(((found_ind+1) < param*2) && parent->children[found_ind+1] && parent->children[found_ind+1]->val_count >= param){
                             tree_item* right_neighbour = parent->children[found_ind+1];
                             cur->add_val(parent->values[found_ind]->card_num, parent->values[found_ind]->ind);
@@ -333,6 +368,7 @@ void b_tree::remove_item(int key){
                             right_neighbour->remove_child(0);
                             right_neighbour->remove_val(0);
                         }else{
+                            //Иначе, объединить с каким либо братом и разделяющим значением из родителя
                             if(found_ind > 0){
                                 tree_item* left_neighbour = parent->children[found_ind-1];
                                 left_neighbour->add_val(parent->values[found_ind-1]->card_num, parent->values[found_ind-1]->ind);
@@ -371,6 +407,7 @@ void b_tree::remove_item(int key){
                 }
             }
         }
+        //Когда дошли до листа - ищем и удаляем
         int l_left = 0;
         int l_right = cur->val_count-1;
         int l_mid = 0;
@@ -394,6 +431,7 @@ void b_tree::remove_item(int key){
         }
     }
 }
+//Метод запуска вывода дерева
 void b_tree::print_tree(){
     std::string gap = "";
     for(int i = 0; i < key_size; i++){
@@ -401,6 +439,7 @@ void b_tree::print_tree(){
     }
     root->print_self("", gap, false, false);
 }
+//Конструктор обёртки дерева
 b_tree::b_tree(int param){
     if (param > 1){
         this->param = param;
@@ -408,10 +447,12 @@ b_tree::b_tree(int param){
         records = 0;
         key_size = 0;
         height = 0;
+        transform_count = 0;
     }else{
         std::__throw_length_error("Wrong tree parameter");
     }
 }
+//Деструктор обёртки дерева
 b_tree::~b_tree(){
     if (root){
         delete root;

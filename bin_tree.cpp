@@ -1,4 +1,5 @@
 #include "bin_tree.h"
+//Метод рекурсивного вывода дерева
 void bin_tree::tree_item::print_self(std::string gap_before, std::string self_gap, bool left, bool right){
     if(this->right){
         if ((gap_before.length() > 0) && right){
@@ -24,6 +25,7 @@ void bin_tree::tree_item::print_self(std::string gap_before, std::string self_ga
         }
     }
 }
+//Метод уменьшения сдвига после удаления
 void bin_tree::tree_item::decr_ind(unsigned int ind){
     if (value->ind > ind){
         value->ind -= 1;
@@ -35,11 +37,13 @@ void bin_tree::tree_item::decr_ind(unsigned int ind){
         right->decr_ind(ind);
     }
 }
+//Коструктор узла дерева
 bin_tree::tree_item::tree_item(patient* value){
     this->left = nullptr;
     this->right = nullptr;
     this->value = value;
 }
+//Деструктор узла дерева
 bin_tree::tree_item::~tree_item(){
     if (value){
         delete value;
@@ -51,6 +55,7 @@ bin_tree::tree_item::~tree_item(){
         delete right;
     }
 }
+//Метод добавления узла в дерево
 void bin_tree::add_item(int key, unsigned int index){
     records += 1;
     tree_item** cur = &root;
@@ -69,6 +74,7 @@ void bin_tree::add_item(int key, unsigned int index){
     height = height < level ? level : height;
     *cur = new tree_item(new patient(key, index));
 }
+//Метод поиска в дереве
 int bin_tree::find_item(int key){
     tree_item* cur = root;
     while(cur){
@@ -82,6 +88,7 @@ int bin_tree::find_item(int key){
     }
     return -1;
 }
+//Метод удаления из дерева
 void bin_tree::remove_item(int key){
     tree_item** cur = &root;
     while(*cur){
@@ -93,6 +100,8 @@ void bin_tree::remove_item(int key){
             records -= 1;
             int ind = (*cur)->value->ind;
             if ((*cur)->left && (*cur)->right){
+                //Если есть правый и левый ребёнок - заменяем удалённое значение
+                //на минимальное справа
                 tree_item** replacement = &((*cur)->right);
                 while ((*replacement)->left){
                     replacement = &((*replacement)->left);
@@ -109,6 +118,7 @@ void bin_tree::remove_item(int key){
                     delete *replacement;
                     *replacement = nullptr;
                 }
+            //Иначе просто перемещаем ребёнка на место удалённого
             }else if ((*cur)->left){
                 tree_item* temp = ((*cur)->left);
                 (*cur)->left = nullptr;
@@ -128,6 +138,7 @@ void bin_tree::remove_item(int key){
         }
     }
 }
+//Метод запуска вывода дерева
 void bin_tree::print_tree(){
     std::string gap = "";
     for(int i = 0; i < key_size; i++){
@@ -137,12 +148,14 @@ void bin_tree::print_tree(){
         root->print_self("", gap, false, false);
     }
 }
+//Конструктор обёртки дерева
 bin_tree::bin_tree(){
     root = nullptr;
     height = 0;
     records = 0;
     key_size = 0;
 }
+//Деструктор обёртки дерева
 bin_tree::~bin_tree(){
     if (root){
         delete root;

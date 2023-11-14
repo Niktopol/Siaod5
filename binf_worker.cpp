@@ -1,4 +1,5 @@
 #include "binf_worker.h"
+//Конструктор объекта управления файлом
 binf_worker::binf_worker(){
     file.open("bininput.bin", std::ios::trunc | std::ios::in | std::ios::out | std::ios::binary);
     size = 0;
@@ -6,6 +7,7 @@ binf_worker::binf_worker(){
     btree = new b_tree(3);
     table = new hash_table();
 }
+//Метод создания файла
 void binf_worker::gen_file(unsigned int size){
     std::ofstream fout("input.txt", std::ios::trunc | std::ios::out);
     std::string surnames [15] = {"Petrov", "Ivanov", "Sidorov", "Efimov", "Pahomov",
@@ -32,18 +34,23 @@ void binf_worker::gen_file(unsigned int size){
     }
     std::cout << "File creation finished" << std::endl;
 }
+//Метод получения размера файла
 int binf_worker::get_size(){
     return size;
 }
+//Метод вывода бинарного дерева
 void binf_worker::print_binary_tree(){
     binary_tree->print_tree();
 }
+//Метод вывода b-дерева
 void binf_worker::print_b_tree(){
     btree->print_tree();
 }
+//Метод вывода хэш-таблицы
 void binf_worker::print_hash_table(){
     table->print_table();
 }
+//Метод записи в бинарный файл
 void binf_worker::write_to_file(patient_info& info){
     if (file.is_open()){
         file.seekp(0, std::ios::end);
@@ -56,6 +63,7 @@ void binf_worker::write_to_file(patient_info& info){
         ++size;
     }
 }
+//Метод удаления из бинарных файлов и используемых структур
 void binf_worker::remove_from_file(int key){
     if(file.is_open()){
         file.seekg(0, std::ios::beg);
@@ -79,6 +87,7 @@ void binf_worker::remove_from_file(int key){
         --size;
     }
 }
+//Метод считывания записи по сдвигу
 std::string binf_worker::find_in_file(int ind){
     std::string record;
     if(file.is_open() && ind < size && ind >= 0){
@@ -94,16 +103,22 @@ std::string binf_worker::find_in_file(int ind){
     }
     return record;
 }
+//Метод поиска с помощью бинарного дерева
 std::string binf_worker::find_by_bin_tree(int key){
     return find_in_file(binary_tree->find_item(key));
 }
+//Метод поиска с помощью b-дерева
 std::string binf_worker::find_by_b_tree(int key){
     return find_in_file(btree->find_item(key));
 }
+//Метод поиска с помощью хэш-таблицы
 std::string binf_worker::find_by_hash_table(int key){
     return find_in_file(table->find(key));
 }
+//Деструктор объекта управления файлом
 binf_worker::~binf_worker(){
     delete binary_tree;
+    delete btree;
+    delete table;
     file.close();
 }
