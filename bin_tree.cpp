@@ -136,59 +136,6 @@ void bin_tree::print_tree(){
     if (root){
         root->print_self("", gap, false, false);
     }
-    /*
-    std::queue<tree_item*> queue;
-    std::queue<tree_item*> print_queue;
-    tree_item* temp;
-    std::string gap = "";
-    std::string e_gap = "";
-    int to_print = records;
-    if(root){
-        queue.push(root);
-        for(int i = 0; i < key_size; i++){
-            gap += " ";
-            e_gap += "-";
-        }
-        for(int i = 0; i < height; i++){
-            for (int j = 0; j < std::pow(2, i); j++){
-                print_queue.push(queue.front());
-                queue.pop();
-                if(print_queue.back()){
-                    to_print -= 1;
-                    queue.push(print_queue.back()->left);
-                    queue.push(print_queue.back()->right);
-                }else{
-                    queue.push(nullptr);
-                    queue.push(nullptr);
-                }
-            }
-            if (to_print == 0 && i < (height-1)){
-                height -= 1;
-            }
-        }
-        for(int level = 1; level <= height; level++){
-            for (int gap_left = 0; gap_left <= (height - level - 1); gap_left++){
-                for (int pr_gap = 0; pr_gap < std::pow(2,gap_left); pr_gap++){
-                    std::cout << gap;
-                }
-            }
-            for (int j = 0; j < std::pow(2, level-1); j++){
-                std::string gap_between = "";
-                for (int gap_betw = 0; gap_betw <= (height - level); gap_betw++){
-                    for (int pr_gap = 0; pr_gap < std::pow(2,gap_betw); pr_gap++){
-                        gap_between += gap;
-                    }
-                }
-                if (print_queue.front()){
-                    std::cout << print_queue.front()->value->card_num << gap_between;
-                }else{
-                    std::cout << e_gap << gap_between;
-                }
-                print_queue.pop();
-            }
-            std::cout << std::endl;
-        }
-    }*/
 }
 bin_tree::bin_tree(){
     root = nullptr;

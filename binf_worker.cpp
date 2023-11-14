@@ -3,6 +3,8 @@ binf_worker::binf_worker(){
     file.open("bininput.bin", std::ios::trunc | std::ios::in | std::ios::out | std::ios::binary);
     size = 0;
     binary_tree = new bin_tree();
+    btree = new b_tree(3);
+    table = new hash_table();
 }
 void binf_worker::gen_file(unsigned int size){
     std::ofstream fout("input.txt", std::ios::trunc | std::ios::out);
@@ -28,12 +30,19 @@ void binf_worker::gen_file(unsigned int size){
         }
         fin.close();
     }
+    std::cout << "File creation finished" << std::endl;
 }
 int binf_worker::get_size(){
     return size;
 }
-void binf_worker::print_tree(){
+void binf_worker::print_binary_tree(){
     binary_tree->print_tree();
+}
+void binf_worker::print_b_tree(){
+    btree->print_tree();
+}
+void binf_worker::print_hash_table(){
+    table->print_table();
 }
 void binf_worker::write_to_file(patient_info& info){
     if (file.is_open()){
@@ -41,6 +50,8 @@ void binf_worker::write_to_file(patient_info& info){
         file.write(reinterpret_cast<char*>(&info), sizeof(info));
 
         binary_tree->add_item(info.card_num, size);
+        btree->add_item(info.card_num, size);
+        table->push_key(info.card_num, size);
         
         ++size;
     }
@@ -56,6 +67,8 @@ void binf_worker::remove_from_file(int key){
                 ofs.write(reinterpret_cast<char*>(&info), sizeof(patient_info));
             }else{
                 binary_tree->remove_item(key);
+                btree->remove_item(key);
+                table->remove(key);
             }
         }
         ofs.close(); 
@@ -85,10 +98,10 @@ std::string binf_worker::find_by_bin_tree(int key){
     return find_in_file(binary_tree->find_item(key));
 }
 std::string binf_worker::find_by_b_tree(int key){
-    return "";
+    return find_in_file(btree->find_item(key));
 }
 std::string binf_worker::find_by_hash_table(int key){
-    return "";
+    return find_in_file(table->find(key));
 }
 binf_worker::~binf_worker(){
     delete binary_tree;

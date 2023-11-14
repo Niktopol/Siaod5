@@ -2,7 +2,6 @@
 #define B_TREE
 #include "structures.h"
 #include <iostream>
-#include <vector>
 
 class b_tree{
     struct tree_item{
@@ -11,6 +10,7 @@ class b_tree{
         patient** values;
         tree_item** children;
         int param;
+        void decrease_ind(unsigned int key);
         bool add_val(int, unsigned int);
         void add_children(tree_item*, tree_item*, tree_item*);
         void remove_val(unsigned int);

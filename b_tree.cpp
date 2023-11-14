@@ -1,5 +1,17 @@
 #include "b_tree.h"
 
+void b_tree::tree_item::decrease_ind(unsigned int key){
+    for(int i = 0; i < val_count; i++){
+        if (values[i]->ind > key){
+            values[i]->ind -= 1;
+        }
+    }
+    if(has_children){
+        for(int i = 0; i < val_count+1; i++){
+            children[i]->decrease_ind(key);
+        }
+    }
+}
 bool b_tree::tree_item::add_val(int key, unsigned int index){
     int temp_key = 0;
     int temp_ind = 0;
@@ -226,6 +238,7 @@ int b_tree::find_item(int key){
 }
 void b_tree::remove_item(int key){
     if(root){
+        int ind = -1;
         tree_item* parent = nullptr;
         tree_item* cur = root;
         while(cur->has_children){
@@ -241,6 +254,7 @@ void b_tree::remove_item(int key){
                     left = mid + 1;
                 }
                 else{
+                    ind = (ind > 0) ? ind: cur->values[mid]->ind;
                     if(cur->children[mid]->val_count >= param){
                         tree_item* temp_cur = cur->children[mid];
                         while (temp_cur->has_children){
@@ -369,7 +383,9 @@ void b_tree::remove_item(int key){
                 l_left = l_mid + 1;
             }
             else{
+                ind = (ind > 0) ? ind : cur->values[l_mid]->ind;
                 cur->remove_val(l_mid);
+                root->decrease_ind(ind);
                 return;
             }
             if (l_left > l_right){
